@@ -76,6 +76,9 @@ void player::throwcd(hcard x)
 		}
 		else lastout_is_hua = false;
 	}
+	else {
+		lastout_is_hua = false;
+	}
 	mycds[x]--;
 	cdnum--;
 	if (mycds[x] == 0) mycds.erase(x);
