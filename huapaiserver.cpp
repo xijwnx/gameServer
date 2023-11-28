@@ -48,7 +48,7 @@ string dzfheap(table& t, int id) {
             cds += name[i.cd] + L"*  ";
         }
         for (int j = 0; j < 3-i.hua; j++) {
-            cds += name[i.cd] + L"   ";
+            cds += name[i.cd] + L"  ";
         }
         cds += L"\r\n";
     }
@@ -57,16 +57,16 @@ string dzfheap(table& t, int id) {
             cds += name[i.cd] + L"*  ";
         }
         for (int j = 0; j < 4 - i.hua; j++) {
-            cds += name[i.cd] + L"   ";
+            cds += name[i.cd] + L"  ";
         }
         cds += L"\r\n";
     }
     for (auto& i : p->fan) {
         cds += name[i] + L"*  ";
         cds += name[i] + L"*  ";
-        cds += name[i] + L"   ";
-        cds += name[i] + L"   ";
-        cds += name[i] + L"   ";
+        cds += name[i] + L"  ";
+        cds += name[i] + L"  ";
+        cds += name[i] + L"  ";
     }
     std::string utf8Message2 = converter.to_bytes(cds);
     //utf8Message2.insert(utf8Message2.begin(), static_cast<char>(mydzf));
@@ -214,13 +214,17 @@ public:
                             T.plys[pid]->getdui(T.last, false);
                         }
                         T.sts = wait;
+                        wnts = L"玩家" + to_wstring(pid + 1) + L"对了： " + name[T.last];
+                        broadcast(wnts, notis);
                         nts = dzfheap(T, pid);
                         nts.insert(nts.begin(), static_cast<char>(mydzf));
                         send(clients[pid], nts.c_str(), nts.size(), 0);
                         nts[0] = static_cast<char>(nextdzf);
                         send(clients[(pid + 2) % 3], nts.c_str(), nts.size(), 0);
                         nts[0] = static_cast<char>(enddzf);
-                        send(clients[(pid + 1) % 3], nts.c_str(), nts.size(), 0);                        
+                        send(clients[(pid + 1) % 3], nts.c_str(), nts.size(), 0);      
+                        nts = cdheap(T, pid);
+                        send(clients[pid], nts.c_str(), nts.size(), 0);
                     }
                     else {
                         error.insert(error.begin(), static_cast<char>(errorop));
@@ -228,25 +232,55 @@ public:
                     }                    
                 }
                 else if (message == "zhao") {
-                    if (T.last == Yi || T.last == San || T.last == Wu || T.last == Qi || T.last == Jiu) {
-                        if (T.plys[pid]->mycds[T.last] == 3)
-                            T.plys[pid]->getdui(T.last, T.last_is_J, p->hua[T.last]);
-                        else {
-                            T.plys[pid]->getdui(T.last, T.last_is_J, 1);
-                        }
+                    if (p->mycds[T.last] < 3) {
+                        error.insert(error.begin(), static_cast<char>(errorop));
+                        send(clients[pid], error.c_str(), error.size(), 0);
                     }
                     else {
-                        T.plys[pid]->getdui(T.last, false);
-                    }
-                    p->getcd(T.gettop());
-                    T.sts = wait;
+                        if (T.last == Yi || T.last == San || T.last == Wu || T.last == Qi || T.last == Jiu) {
+                            if (T.plys[pid]->mycds[T.last] == 3)
+                                T.plys[pid]->getdui(T.last, T.last_is_J, p->hua[T.last]);
+                            else {
+                                T.plys[pid]->getdui(T.last, T.last_is_J, 1);
+                            }
+                        }
+                        else {
+                            T.plys[pid]->getdui(T.last, false);
+                        }
+                        p->getcd(T.gettop());
+                        T.sts = wait;
+                        wnts = L"玩家" + to_wstring(pid + 1) + L"开招： " + name[T.last];
+                        broadcast(wnts, notis);
+                        nts = dzfheap(T, pid);
+                        nts.insert(nts.begin(), static_cast<char>(mydzf));
+                        send(clients[pid], nts.c_str(), nts.size(), 0);
+                        nts[0] = static_cast<char>(nextdzf);
+                        send(clients[(pid + 2) % 3], nts.c_str(), nts.size(), 0);
+                        nts[0] = static_cast<char>(enddzf);
+                        send(clients[(pid + 1) % 3], nts.c_str(), nts.size(), 0);
+                        nts = cdheap(T, pid);
+                        send(clients[pid], nts.c_str(), nts.size(), 0);
+                    }                    
                 }
                 else if (message == "fan") {
                     p->getfan(T.last);
                     p->getcd(T.gettop());
+                    T.sts = wait;
+                    wnts = L"玩家" + to_wstring(pid + 1) + L"开贩： " + name[T.last];
+                    broadcast(wnts, notis);
+                    nts = dzfheap(T, pid);
+                    nts.insert(nts.begin(), static_cast<char>(mydzf));
+                    send(clients[pid], nts.c_str(), nts.size(), 0);
+                    nts[0] = static_cast<char>(nextdzf);
+                    send(clients[(pid + 2) % 3], nts.c_str(), nts.size(), 0);
+                    nts[0] = static_cast<char>(enddzf);
+                    send(clients[(pid + 1) % 3], nts.c_str(), nts.size(), 0);
+                    nts = cdheap(T, pid);
+                    send(clients[pid], nts.c_str(), nts.size(), 0);
                 }
                 else if (message == "hu") {
-
+                    error.insert(error.begin(), static_cast<char>(errorop));
+                    send(clients[pid], error.c_str(), error.size(), 0);
                 }
                 else if (message == "pass") {
                     T.pass();
@@ -369,7 +403,7 @@ public:
             // 处理客户端消息
             std::string message(buffer);
             game.handlePlayerMessage(playerID, message);
-            wstr = L"现在是玩家" + to_wstring(T.turn + 1) + (T.sts == wait ? L"出牌" : L"响应") + L"的回合。";
+            wstr = L"现在是玩家" + to_wstring(T.turn + 1) + (T.sts == wait ? L"的出牌" : L"的响应") + L"回合。";
             broadcast(wstr, statuss);
         }
     }
