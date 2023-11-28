@@ -26,6 +26,7 @@ void table::inittable()
 
 int table::gettop()
 {
+	if (!cdheap.size()) return -1;
 	int cd = cdheap.front();
 	cdheap.pop_front();
 	return cd;
@@ -33,6 +34,7 @@ int table::gettop()
 
 int table::getbuttom()
 {
+	if (!cdheap.size()) return -1;
 	int cd = cdheap.back();
 	cdheap.pop_back();
 	return cd;

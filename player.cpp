@@ -1,5 +1,6 @@
 #include "player.h"
 #include <iostream>
+#include <algorithm>
 
 cdgroup::cdgroup(hcard cd, int cdnum, int hnum) :cd(cd), num(cdnum), hua(hnum) {}
 
@@ -26,8 +27,8 @@ void player::getcd(int b)
 
 void player::getdui(hcard cd,bool w,int c)
 {
-	c += w ? 1 : 0;
-	cdgroup x(cd, 3, c);
+	int jnum = c + w;
+	cdgroup x(cd, 3, jnum);
 	dui.push_back(x);
 	mycds[cd] -= 2;
 	hua[cd] -= c;
@@ -37,9 +38,9 @@ void player::getdui(hcard cd,bool w,int c)
 
 void player::getzhao(hcard cd,bool w,int c)
 {
-	c += w ? 1 : 0;
-	cdgroup x(cd, 4, c);
-	dui.push_back(x);
+	int jnum = c + w;
+	cdgroup x(cd, 4, jnum);
+	zhao.push_back(x);
 	mycds[cd] -= 3;
 	hua[cd] -= c;
 	if (mycds[cd] == 0) mycds.erase(cd);
@@ -53,16 +54,11 @@ void player::getfan(hcard cd)
 	cdnum -= 4;
 }
 
-void player::ganta(hcard cd)
+void player::ganta(hcard hcd)
 {
-	fan.push_back(cd);
-	for (auto i = zhao.begin(); i != zhao.end(); i++) {
-		if (i->cd == cd) {
-			zhao.erase(i);
-			break;
-		}
-	}
-	mycds.erase(cd);
+	fan.push_back(hcd);
+	zhao.erase(find_if(zhao.begin(), zhao.end(), [hcd](cdgroup x) {return x.cd == hcd; }));
+	mycds.erase(hcd);
 	cdnum -= 1;
 }
 
@@ -85,23 +81,6 @@ void player::throwcd(hcard x)
 	if (mycds[x] == 0) mycds.erase(x);
 	lastout = x;
 }
-
-
-//void player::printheap()
-//{
-//	for (auto i : mycds) {
-//		if (i.first == Yi || i.first == San || i.first == Wu || i.first == Qi || i.first == Jiu) {
-//			for (int j = 0; j < i.second - hua[i.first]; j++) cout << name[i.first] << " ";
-//			for (int j = 0; j < hua[i.first]; j++) cout << name[i.first] << "* ";
-//			
-//		}
-//		else {
-//			for (int j = 0; j < i.second; j++) cout << name[i.first] << " ";
-//		}
-//		cout << endl;
-//	}
-//	cout << endl;
-//}
 
 bool hu(map<hcard, int> hand, int tong)
 {
