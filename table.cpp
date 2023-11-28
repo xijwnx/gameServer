@@ -1,7 +1,7 @@
 #include "table.h"
 #include <ctime>
 #include <memory>
-
+#define MAXCARDS 112
 using std::make_shared;
 
 table::table()
@@ -12,12 +12,12 @@ table::table()
 void table::inittable()
 {
 	srand(time(0));
-	vector<int> t(112, 0);
-	cdheap.assign(112, 0);
-	for (int i = 0; i < 112; i++) {
-		int r = rand() % 112;
+	vector<int> t(MAXCARDS, 0);
+	cdheap.assign(MAXCARDS, 0);
+	for (int i = 0; i < MAXCARDS; i++) {
+		int r = rand() % MAXCARDS;
 		while (t[r] != 0) {
-			r = rand() % 112;
+			r = rand() % MAXCARDS;
 		}
 		cdheap[i] = r;
 		t[r] = 1;

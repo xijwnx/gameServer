@@ -29,10 +29,13 @@ std::string utf8_encode(const std::wstring& wstr) {
 	std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
 	return converter.to_bytes(wstr);
 }
+int flag = 0;
+inline void addend(string& s) { s.insert(s.end(), { '#', '#' }); }
 void broadcast(const wstring& s, msgtype mtp) {
 	string nts;
 	nts = converter.to_bytes(s);
 	nts.insert(nts.begin(), static_cast<char>(mtp));
+	addend(nts);
 	send(clients[0], nts.c_str(), nts.size(), 0);
 	send(clients[1], nts.c_str(), nts.size(), 0);
 	send(clients[2], nts.c_str(), nts.size(), 0);
@@ -45,13 +48,15 @@ void gameover(int pid) {
 	}
 	else {
 		wstring winp = L"恭喜您取得胜利！";
-		wstring lossp = L"很遗憾，玩家" + to_wstring(pid) + L"取得胜利。";
+		wstring lossp = L"很遗憾，玩家" + to_wstring(pid+1) + L"取得胜利。";
 		string str;
 		str = converter.to_bytes(winp);
 		str.insert(str.begin(), static_cast<char>(win));
+		addend(str);
 		send(clients[pid], str.c_str(), str.size(), 0);
 		str = converter.to_bytes(lossp);
 		str.insert(str.begin(), static_cast<char>(loss));
+		addend(str);
 		send(clients[(pid + 1) % 3], str.c_str(), str.size(), 0);
 		send(clients[(pid + 2) % 3], str.c_str(), str.size(), 0);
 	}
@@ -120,6 +125,7 @@ string cdheap(table& t, int id) {
 	cds += L"\r\n您刚刚摸到的牌：" + name[T.plys[id]->lastin] + (T.plys[id]->lastin_is_hua ? L"*" : L"");
 	std::string utf8Message2 = converter.to_bytes(cds);
 	utf8Message2.insert(utf8Message2.begin(), static_cast<char>(hand));
+	addend(utf8Message2);
 	return utf8Message2;
 }
 // 游戏逻辑
@@ -145,6 +151,7 @@ public:
 		wstring wnts;
 		if (pid != T.turn&&T.sts!=over) {
 			error.insert(error.begin(), static_cast<char>(errorturn));
+			addend(error);
 			send(clients[pid], error.c_str(), error.size(), 0);
 		}
 		else {
@@ -165,6 +172,7 @@ public:
 					while (i != p->zhao.end() && i->cd != p->lastin)i++;
 					if (i == p->zhao.end()) {
 						error.insert(error.begin(), static_cast<char>(errorop));
+						addend(error);
 						send(clients[pid], error.c_str(), error.size(), 0);
 					}
 					else {
@@ -178,6 +186,7 @@ public:
 						send(clients[pid], nts.c_str(), nts.size(), 0);
 						nts = dzfheap(T, pid);
 						nts.insert(nts.begin(), static_cast<char>(mydzf));
+						addend(nts);
 						send(clients[pid], nts.c_str(), nts.size(), 0);
 						nts[0] = static_cast<char>(nextdzf);
 						send(clients[(pid + 2) % 3], nts.c_str(), nts.size(), 0);
@@ -206,11 +215,13 @@ public:
 					}
 					else {
 						error.insert(error.begin(), static_cast<char>(errorop));
+						addend(error);
 						send(clients[pid], error.c_str(), error.size(), 0);
 					}
 				}
 				else {
 					error.insert(error.begin(), static_cast<char>(errorop));
+					addend(error);
 					send(clients[pid], error.c_str(), error.size(), 0);
 				}
 				break;
@@ -235,6 +246,7 @@ public:
 						broadcast(wnts, notis);
 						nts = dzfheap(T, pid);
 						nts.insert(nts.begin(), static_cast<char>(mydzf));
+						addend(nts);
 						send(clients[pid], nts.c_str(), nts.size(), 0);
 						nts[0] = static_cast<char>(nextdzf);
 						send(clients[(pid + 2) % 3], nts.c_str(), nts.size(), 0);
@@ -245,12 +257,14 @@ public:
 					}
 					else {
 						error.insert(error.begin(), static_cast<char>(errorop));
+						addend(error);
 						send(clients[pid], error.c_str(), error.size(), 0);
 					}
 				}
 				else if (message == "zhao") {
 					if (p->mycds[T.last] < 3) {
 						error.insert(error.begin(), static_cast<char>(errorop));
+						addend(error);
 						send(clients[pid], error.c_str(), error.size(), 0);
 					}
 					else {
@@ -270,6 +284,7 @@ public:
 						broadcast(wnts, notis);
 						nts = dzfheap(T, pid);
 						nts.insert(nts.begin(), static_cast<char>(mydzf));
+						addend(nts);
 						send(clients[pid], nts.c_str(), nts.size(), 0);
 						nts[0] = static_cast<char>(nextdzf);
 						send(clients[(pid + 2) % 3], nts.c_str(), nts.size(), 0);
@@ -287,6 +302,7 @@ public:
 					broadcast(wnts, notis);
 					nts = dzfheap(T, pid);
 					nts.insert(nts.begin(), static_cast<char>(mydzf));
+					addend(nts);
 					send(clients[pid], nts.c_str(), nts.size(), 0);
 					nts[0] = static_cast<char>(nextdzf);
 					send(clients[(pid + 2) % 3], nts.c_str(), nts.size(), 0);
@@ -328,6 +344,7 @@ public:
 				}
 				else {
 					error.insert(error.begin(), static_cast<char>(errorop));
+					addend(error);
 					send(clients[pid], error.c_str(), error.size(), 0);
 				}
 				break;
@@ -336,7 +353,8 @@ public:
 					gameover(pid);
 				}
 				else {
-					gameover(-1);
+					flag++;
+					if(flag==3)gameover(-1);
 				}				
 				break;
 			}
@@ -419,12 +437,14 @@ public:
 		wstr = L"欢迎来到花牌游戏，请等待";
 		tmp = converter.to_bytes(wstr);
 		tmp.insert(tmp.begin(), static_cast<char>(statuss));
+		addend(tmp);
 		if (playerID != 3)send(clientSocket, tmp.c_str(), tmp.size(), 0);
 		while (currentPlayerID < 4);
 		send(clientSocket, s.c_str(), s.size(), 0);
 		wstr = L"现在是玩家1的出牌回合";
 		tmp = converter.to_bytes(wstr);
 		tmp.insert(tmp.begin(), static_cast<char>(statuss));
+		addend(tmp);
 		send(clientSocket, tmp.c_str(), tmp.size(), 0);
 		while (true) {
 			// 接收客户端消息
@@ -437,7 +457,7 @@ public:
 				std::lock_guard<std::mutex> lock(consoleMutex);
 				std::cout << "Player " << playerID << " disconnected" << std::endl;
 				closesocket(clientSocket);
-				return;
+				break;
 			}
 
 			// 处理客户端消息
