@@ -25,7 +25,7 @@ constexpr int PORT = 12345;  // ·şÎñÆ÷¶Ë¿Ú
 table T;
 std::mutex consoleMutex;
 std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
-std::string utf8_encode(const std::wstring& wstr) {
+string utf8_encode(const std::wstring& wstr) {
 	std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
 	return converter.to_bytes(wstr);
 }
